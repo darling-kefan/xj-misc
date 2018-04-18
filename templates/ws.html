@@ -1,0 +1,181 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="static/css/bootstrap-theme.min.css" rel="stylesheet">
+    <style type="text/css">
+     #console {
+         list-style: none;
+         border:1px solid #ccc;
+         color: white;
+         background-color: black;
+         padding-left: 15px;
+         padding-top: 5px;
+         padding-bottom: 15px;
+         /*height: auto !important;
+            min-height: 600px;*/
+         height: 600px;
+         overflow: auto;
+     }
+
+     #console li::before {
+         content: ">>> ";
+         margin-right: 5px
+     }
+
+     #console li.backcolor1::before {
+         background-color: #1E90FF;
+     }
+
+     #console li.backcolor2::before {
+         background-color: #00CD00;
+     }
+
+     #console li {
+         line-height: 30px;
+         font-size: 16px;
+         font-family: Helvetica;
+         word-break: break-all;
+         word-wrap: break-word;
+     }
+
+     .padtop15 {
+         padding-top: 15px !important;
+     }
+    </style>
+</head>
+
+<body>
+
+<div class="container-fluid">
+    <div class="table-responsive">
+        <table class="table table-striped" style="margin-bottom: 10px;">
+            <tr>
+                <td colspan="5"><strong>Websocket连接地址</strong>: <ins id="wsurl"></ins></td>
+            </tr>
+            <tr>
+                <td class="col-md-1 padtop15"><a href="javascript:WebSocketConn();" class="btn btn-primary col-md-12">连&nbsp;&nbsp;接</a></td>
+                <td class="col-md-4 padtop15"><input name="regmsg" type="text" class="form-control col-md-12" placeholder="注册消息"></td>
+                <td class="col-md-1 padtop15"><a href="javascript:Register();" class="btn btn-success col-md-12">注&nbsp;&nbsp;册</a></td>
+                <td class="col-md-5 padtop15"></td>
+                <td class="col-md-1 padtop15"><a href="javascript:WebSocketClose();" class="btn btn-danger col-md-12">断&nbsp;&nbsp;开</a></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-strip" style="margin-bottom: 0px;">
+            <tr>
+                <td class="col-md-4" style="height:50px"><textarea class="form-control" rows="15" name="message"></textarea></td>
+                <td class="col-md-8" rowspan=2>
+                    <ul id="console">
+                    </ul>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-1"><a href="javascript:Send();" class="btn btn-primary col-md-12">发&nbsp;&nbsp;送</a></td>
+            </tr>
+        </table>
+    </div>
+</div>
+</body>
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="static/js/bootstrap.min.js"></script>
+
+<script type="text/javascript">
+    var ws = null;
+    var wsurl = null;
+
+    function WebSocketConn() {
+        if (ws != null && ws.readyState == 1) {
+            log("已经连接");
+            return
+        }
+
+        if ("WebSocket" in window) {
+            ws = new WebSocket(wsurl);
+
+            ws.onopen = function() {
+                log('成功连接服务器');
+            };
+
+            ws.onmessage = function(event) {
+                log(event.data, 1)
+            };
+
+            ws.onclose = function() {
+                // websocket is closed.
+                log("已经和服务器断开");
+            };
+
+            ws.onerror = function(event) {
+                console.log("error " + event.data);
+            };
+        } else {
+            // The browser doesn't support WebSocket
+            alert("WebSocket NOT supported by your Browser!");
+        }
+    }
+
+    function WebSocketClose() {
+        if (ws != null && ws.readyState == 1) {
+            ws.close();
+            log("发送断开服务器请求");
+        } else {
+            log("当前没有连接服务器")
+        }
+    }
+
+    function Register() {
+        if (ws != null && ws.readyState == 1) {
+            var msg = $("[name='regmsg']").val();
+            log(msg);
+            ws.send(msg);
+        } else {
+            log('请先连接服务器');
+        }
+    }
+
+    function Send() {
+        if (ws != null && ws.readyState == 1) {
+            var msg = $("[name='message']").val();
+            log(msg);
+            ws.send(msg);
+        } else {
+            log('请先连接服务器');
+        }
+    }
+
+    function log(text, type=0) {
+        var li = document.createElement('li');
+        if (type == 1) {
+            $(li).addClass("backcolor2");
+        } else {
+            $(li).addClass("backcolor1");
+        }
+        li.appendChild(document.createTextNode(text));
+        document.getElementById('console').appendChild(li);
+        return false;
+    }
+
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) return unescape(r[2]);
+        return null;
+    }
+
+    $().ready(function() {
+        wsurl = "wss://cc.ndmooc.com/v2/ngx/center/units/"+GetQueryString('unit_id')+"/?token="+GetQueryString('token');
+        $("#wsurl").text(wsurl);
+        return false;
+    })
+</script>
+
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<link href="static/css/bootstrap.min.css" rel="stylesheet">
+        <script type="text/javascript">
+        var ws = null;
+
+         function test() {
+             log(GetQueryString('unit_id'));
+             log(GetQueryString('devicetoken'));
+         }
+
+        function WebSocketConn() {
+            if (ws != null && ws.readyState == 1) {
+                log("已经连接");
+                return
+            }
+
+            if ("WebSocket" in window) {
+                // Let us open a web socket
+                var wsurl = "ws://192.168.0.195:5201/v2/ngx/center/units/"+GetQueryString('unit_id')+"/?token="+GetQueryString('token');
+                if (GetQueryString('devicetoken') != null) {
+                    wsurl = "ws://192.168.0.195:5201/v2/ngx/center/units/"+GetQueryString('unit_id')+"/?devicetoken="+GetQueryString('devicetoken');
+                }
+
+                log(wsurl);
+
+                //ws = new WebSocket("ws://ws2.nd.workgroup.asia/v1/");
+                //ws = new WebSocket("ws://192.168.0.195:5201/v1/unit/"+GetQueryString('unit_id')+"/signin/"+GetQueryString('devicetoken')+"/websocket");
+                //ws = new WebSocket("wss://api.ndmooc.com/v1/ngx/units/"+GetQueryString('unit_id')+"/signin/"+GetQueryString('signin_id')+"/websocket");
+                ws = new WebSocket(wsurl);
+
+                ws.onopen = function() {
+                    log('成功连接服务器');
+                };
+
+                ws.onmessage = function(event) {
+                    log(event.data)
+                };
+
+                ws.onclose = function() {
+                    // websocket is closed.
+                    log("已经和服务器断开");
+                };
+
+                ws.onerror = function(event) {
+                    console.log("error " + event.data);
+                };
+            } else {
+                // The browser doesn't support WebSocket
+                alert("WebSocket NOT supported by your Browser!");
+            }
+        }
+
+        function SendMsg() {
+            if (ws != null && ws.readyState == 1) {
+                var msg = document.getElementById('msgtext').value;
+                ws.send(msg);
+            } else {
+                log('请先连接服务器');
+            }
+        }
+
+        function WebSocketClose() {
+            if (ws != null && ws.readyState == 1) {
+                ws.close();
+                log("发送断开服务器请求");
+            } else {
+                log("当前没有连接服务器")
+            }
+        }
+
+        function log(text) {
+            var li = document.createElement('li');
+            li.appendChild(document.createTextNode(text));
+            document.getElementById('log').appendChild(li);
+            // var aaa = JSON.parse(text);
+            //alert(aaa.errmsg);
+            return false;
+        }
+
+        function GetQueryString(name) {
+            var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+            var r = window.location.search.substr(1).match(reg);
+            if (r != null) return unescape(r[2]);return null;
+        }
+        </script>
+    </head>
+
+    <body>
+        <div id="sse">
+            <a href="javascript:test()">Test</a> &nbsp;
+            <a href="javascript:WebSocketConn()">连接服务器</a> &nbsp;
+            <a href="javascript:WebSocketClose()">断开</a>
+            <br>
+            <!--br>
+            <input id="msgtext" type="text">
+            <br>
+            <a href="javascript:SendMsg()">发送消息</a>
+            <br-->
+                <ol id="log"></ol>
+        </div>
+    </body>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="static/js/bootstrap.min.js"></script>
+
+</html>
