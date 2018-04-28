@@ -1,3 +1,6 @@
+// 脚本执行
+// go run websocket-client.go --addr local.cc.ndmooc.com --unitid A16 --token 53ba4bf6af4e4ebd8bdfd09cb99c5c9079485fcb
+
 package main
 
 import (
@@ -94,12 +97,14 @@ func main() {
 			//}
 
 			// TODO 为什么该数据类型不能以二进制流发放
-			//data := &Msg{1, 123, 2, "hello world!"}
 			data := &Msg{1, 123, 2}
+			//data := &Msg{1, 123, 2}
 			buf := new(bytes.Buffer)
 			binary.Write(buf, binary.BigEndian, data)
-			log.Println(buf.Bytes())
-			err := c.WriteMessage(websocket.BinaryMessage, buf.Bytes())
+			bytes := buf.Bytes()
+			bytes = append(bytes, []byte("BBB")...)
+			fmt.Println(bytes)
+			err := c.WriteMessage(websocket.BinaryMessage, bytes)
 			if err != nil {
 				log.Println("write: ", err)
 				return
